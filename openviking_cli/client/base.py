@@ -62,6 +62,31 @@ class BaseClient(ABC):
         """Wait for all processing to complete."""
         ...
 
+    @abstractmethod
+    async def get_watch_task(self, task_id: str) -> Optional[Dict[str, Any]]:
+        """Get a watch task by task ID."""
+        ...
+
+    @abstractmethod
+    async def list_watch_tasks(self, active_only: bool = False) -> List[Dict[str, Any]]:
+        """List watch tasks visible to the current caller."""
+        ...
+
+    @abstractmethod
+    async def get_watch_task_by_uri(self, to_uri: str) -> Optional[Dict[str, Any]]:
+        """Get a watch task by target URI."""
+        ...
+
+    @abstractmethod
+    async def update_watch_task(self, task_id: str, **kwargs) -> Dict[str, Any]:
+        """Update a watch task."""
+        ...
+
+    @abstractmethod
+    async def delete_watch_task(self, task_id: str) -> bool:
+        """Delete a watch task."""
+        ...
+
     # ============= File System =============
 
     @abstractmethod

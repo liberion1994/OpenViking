@@ -28,6 +28,8 @@ from openviking_cli.exceptions import (
     DeadlineExceededError,
     InvalidArgumentError,
     NotInitializedError,
+    NotFoundError,
+    PermissionDeniedError,
 )
 from openviking_cli.utils import get_logger
 from openviking_cli.utils.uri import VikingURI
@@ -372,6 +374,113 @@ class ResourceService:
             logger.info(
                 f"[ResourceService] Deactivated watch task {existing_task.task_id} for {to_uri}"
             )
+
+    async def get_watch_task(self, task_id: str, ctx: RequestContext) -> Optional[Dict[str, Any]]:
+        """Get a single watch task visible to the current caller."""
+        watch_manager = self._get_watch_manager()
+        if not watch_manager:
+            return None
+
+        task = await watch_manager.get_task(
+            task_id=task_id,
+            account_id=ctx.account_id,
+            user_id=ctx.user.user_id,
+            role=ctx.role.value,
+            agent_id=ctx.user.agent_id,
+        )
+        return task.to_dict() if task else None
+
+    async def list_watch_tasks(
+        self,
+        ctx: RequestContext,
+        active_only: bool = False,
+    ) -> List[Dict[str, Any]]:
+        """List watch tasks visible to the current caller."""
+        watch_manager = self._get_watch_manager()
+        if not watch_manager:
+            return []
+
+        tasks = await watch_manager.get_all_tasks(
+            account_id=ctx.account_id,
+            user_id=ctx.user.user_id,
+            role=ctx.role.value,
+            active_only=active_only,
+            agent_id=ctx.user.agent_id,
+        )
+        return [task.to_dict() for task in tasks]
+
+    async def get_watch_task_by_uri(
+        self,
+        to_uri: str,
+        ctx: RequestContext,
+    ) -> Optional[Dict[str, Any]]:
+        """Get a watch task by target URI visible to the current caller."""
+        watch_manager = self._get_watch_manager()
+        if not watch_manager:
+            return None
+
+        task = await watch_manager.get_task_by_uri(
+            to_uri=to_uri,
+            account_id=ctx.account_id,
+            user_id=ctx.user.user_id,
+            role=ctx.role.value,
+            agent_id=ctx.user.agent_id,
+        )
+        return task.to_dict() if task else None
+
+    async def update_watch_task(
+        self,
+        task_id: str,
+        ctx: RequestContext,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """Update an existing watch task."""
+        watch_manager = self._get_watch_manager()
+        if not watch_manager:
+            raise NotInitializedError("WatchManager")
+
+        try:
+            task = await watch_manager.update_task(
+                task_id=task_id,
+                account_id=ctx.account_id,
+                user_id=ctx.user.user_id,
+                role=ctx.role.value,
+                agent_id=ctx.user.agent_id,
+                **kwargs,
+            )
+        except ValueError as exc:
+            if "not found" in str(exc).lower():
+                raise NotFoundError(task_id, "watch task") from exc
+            raise InvalidArgumentError(str(exc)) from exc
+        except Exception as exc:
+            from openviking.resource.watch_manager import PermissionDeniedError as WMPermissionDenied
+
+            if isinstance(exc, WMPermissionDenied):
+                raise PermissionDeniedError(str(exc)) from exc
+            raise
+
+        return task.to_dict()
+
+    async def delete_watch_task(self, task_id: str, ctx: RequestContext) -> bool:
+        """Delete a watch task."""
+        watch_manager = self._get_watch_manager()
+        if not watch_manager:
+            raise NotInitializedError("WatchManager")
+
+        try:
+            return await watch_manager.delete_task(
+                task_id=task_id,
+                account_id=ctx.account_id,
+                user_id=ctx.user.user_id,
+                role=ctx.role.value,
+                agent_id=ctx.user.agent_id,
+            )
+        except Exception as exc:
+            from openviking.resource.watch_manager import PermissionDeniedError as WMPermissionDenied
+
+            if isinstance(exc, WMPermissionDenied):
+                raise PermissionDeniedError(str(exc)) from exc
+            raise
 
     async def add_skill(
         self,

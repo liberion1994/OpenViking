@@ -146,6 +146,9 @@ class SyncHTTPClient:
         instruction: str = "",
         wait: bool = False,
         timeout: Optional[float] = None,
+        build_index: bool = True,
+        summarize: bool = False,
+        watch_interval: float = 0,
         strict: bool = True,
         ignore_dirs: Optional[str] = None,
         include: Optional[str] = None,
@@ -165,6 +168,9 @@ class SyncHTTPClient:
                 instruction,
                 wait,
                 timeout,
+                build_index,
+                summarize,
+                watch_interval,
                 strict,
                 ignore_dirs,
                 include,
@@ -189,6 +195,26 @@ class SyncHTTPClient:
     def wait_processed(self, timeout: Optional[float] = None) -> Dict[str, Any]:
         """Wait for all processing to complete."""
         return run_async(self._async_client.wait_processed(timeout))
+
+    def get_watch_task(self, task_id: str) -> Optional[Dict[str, Any]]:
+        """Get a watch task by task ID."""
+        return run_async(self._async_client.get_watch_task(task_id))
+
+    def list_watch_tasks(self, active_only: bool = False) -> List[Dict[str, Any]]:
+        """List watch tasks visible to the current caller."""
+        return run_async(self._async_client.list_watch_tasks(active_only=active_only))
+
+    def get_watch_task_by_uri(self, to_uri: str) -> Optional[Dict[str, Any]]:
+        """Get a watch task by target URI."""
+        return run_async(self._async_client.get_watch_task_by_uri(to_uri))
+
+    def update_watch_task(self, task_id: str, **kwargs) -> Dict[str, Any]:
+        """Update a watch task."""
+        return run_async(self._async_client.update_watch_task(task_id, **kwargs))
+
+    def delete_watch_task(self, task_id: str) -> bool:
+        """Delete a watch task."""
+        return run_async(self._async_client.delete_watch_task(task_id))
 
     # ============= Search =============
 

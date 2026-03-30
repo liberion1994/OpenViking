@@ -17,6 +17,7 @@ from openviking.server.routers.sessions import router as sessions_router
 from openviking.server.routers.stats import router as stats_router
 from openviking.server.routers.system import router as system_router
 from openviking.server.routers.tasks import router as tasks_router
+from openviking.server.routers.watch import router as watch_router
 
 __all__ = [
     "admin_router",
@@ -34,4 +35,5 @@ __all__ = [
     "metrics_router",
     "observer_router",
     "tasks_router",
+    "watch_router",
 ]

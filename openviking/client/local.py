@@ -139,6 +139,26 @@ class LocalClient(BaseClient):
         """Wait for all processing to complete."""
         return await self._service.resources.wait_processed(timeout=timeout)
 
+    async def get_watch_task(self, task_id: str) -> Optional[Dict[str, Any]]:
+        """Get a watch task by ID."""
+        return await self._service.resources.get_watch_task(task_id=task_id, ctx=self._ctx)
+
+    async def list_watch_tasks(self, active_only: bool = False) -> List[Dict[str, Any]]:
+        """List watch tasks visible to the current caller."""
+        return await self._service.resources.list_watch_tasks(ctx=self._ctx, active_only=active_only)
+
+    async def get_watch_task_by_uri(self, to_uri: str) -> Optional[Dict[str, Any]]:
+        """Get a watch task by target URI."""
+        return await self._service.resources.get_watch_task_by_uri(to_uri=to_uri, ctx=self._ctx)
+
+    async def update_watch_task(self, task_id: str, **kwargs) -> Dict[str, Any]:
+        """Update a watch task."""
+        return await self._service.resources.update_watch_task(task_id=task_id, ctx=self._ctx, **kwargs)
+
+    async def delete_watch_task(self, task_id: str) -> bool:
+        """Delete a watch task."""
+        return await self._service.resources.delete_watch_task(task_id=task_id, ctx=self._ctx)
+
     async def build_index(self, resource_uris: Union[str, List[str]], **kwargs) -> Dict[str, Any]:
         """Manually trigger index building."""
         if isinstance(resource_uris, str):

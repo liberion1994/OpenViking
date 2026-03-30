@@ -256,6 +256,31 @@ class AsyncOpenViking:
         await self._ensure_initialized()
         return await self._client.wait_processed(timeout=timeout)
 
+    async def get_watch_task(self, task_id: str) -> Optional[Dict[str, Any]]:
+        """Get a watch task by task ID."""
+        await self._ensure_initialized()
+        return await self._client.get_watch_task(task_id)
+
+    async def list_watch_tasks(self, active_only: bool = False) -> List[Dict[str, Any]]:
+        """List watch tasks visible to the current caller."""
+        await self._ensure_initialized()
+        return await self._client.list_watch_tasks(active_only=active_only)
+
+    async def get_watch_task_by_uri(self, to_uri: str) -> Optional[Dict[str, Any]]:
+        """Get a watch task by target URI."""
+        await self._ensure_initialized()
+        return await self._client.get_watch_task_by_uri(to_uri)
+
+    async def update_watch_task(self, task_id: str, **kwargs) -> Dict[str, Any]:
+        """Update a watch task."""
+        await self._ensure_initialized()
+        return await self._client.update_watch_task(task_id, **kwargs)
+
+    async def delete_watch_task(self, task_id: str) -> bool:
+        """Delete a watch task."""
+        await self._ensure_initialized()
+        return await self._client.delete_watch_task(task_id)
+
     async def build_index(self, resource_uris: Union[str, List[str]], **kwargs) -> Dict[str, Any]:
         """
         Manually trigger index building for resources.

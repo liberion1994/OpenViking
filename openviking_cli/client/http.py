@@ -324,6 +324,9 @@ class AsyncHTTPClient(BaseClient):
         instruction: str = "",
         wait: bool = False,
         timeout: Optional[float] = None,
+        build_index: bool = True,
+        summarize: bool = False,
+        watch_interval: float = 0,
         strict: bool = True,
         ignore_dirs: Optional[str] = None,
         include: Optional[str] = None,
@@ -344,6 +347,9 @@ class AsyncHTTPClient(BaseClient):
             "instruction": instruction,
             "wait": wait,
             "timeout": timeout,
+            "build_index": build_index,
+            "summarize": summarize,
+            "watch_interval": watch_interval,
             "strict": strict,
             "ignore_dirs": ignore_dirs,
             "include": include,
@@ -428,6 +434,41 @@ class AsyncHTTPClient(BaseClient):
             timeout=http_timeout,
         )
         return self._handle_response(response)
+
+    async def get_watch_task(self, task_id: str) -> Optional[Dict[str, Any]]:
+        """Get a watch task by task ID."""
+        response = await self._http.get(f"/api/v1/watch/tasks/{task_id}")
+        return self._handle_response(response)
+
+    async def list_watch_tasks(self, active_only: bool = False) -> List[Dict[str, Any]]:
+        """List watch tasks visible to the current caller."""
+        response = await self._http.get(
+            "/api/v1/watch/tasks",
+            params={"active_only": active_only},
+        )
+        return self._handle_response(response)
+
+    async def get_watch_task_by_uri(self, to_uri: str) -> Optional[Dict[str, Any]]:
+        """Get a watch task by target URI."""
+        response = await self._http.get(
+            "/api/v1/watch/tasks/by-uri",
+            params={"to_uri": to_uri},
+        )
+        return self._handle_response(response)
+
+    async def update_watch_task(self, task_id: str, **kwargs) -> Dict[str, Any]:
+        """Update a watch task."""
+        response = await self._http.patch(
+            f"/api/v1/watch/tasks/{task_id}",
+            json=kwargs,
+        )
+        return self._handle_response(response)
+
+    async def delete_watch_task(self, task_id: str) -> bool:
+        """Delete a watch task."""
+        response = await self._http.delete(f"/api/v1/watch/tasks/{task_id}")
+        result = self._handle_response(response)
+        return bool(result.get("deleted"))
 
     # ============= File System =============
 
